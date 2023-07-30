@@ -4,6 +4,6 @@ import java.util.List;
 
 public class ChatRoom {
   private String roomName;
-  private List<String> chatLog;
+  private List<ChatMessage> chatLog;
 
 }
