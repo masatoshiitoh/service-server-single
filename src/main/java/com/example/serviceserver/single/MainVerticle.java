@@ -36,7 +36,17 @@ public class MainVerticle extends AbstractVerticle {
                                                         .setConfig(json.result()),
                                                     res6 -> {
                                                       if (res6.succeeded()) {
-                                                        startPromise.complete();
+                                                        vertx.deployVerticle(
+                                                            new DummyClientVerticle(),
+                                                            new DeploymentOptions()
+                                                                .setConfig(json.result()),
+                                                            res7 -> {
+                                                              if (res7.succeeded()) {
+                                                                startPromise.complete();
+                                                              } else {
+                                                                startPromise.fail(res7.cause());
+                                                              }
+                                                            });
                                                       } else {
                                                         startPromise.fail(res6.cause());
                                                       }

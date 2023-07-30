@@ -13,7 +13,8 @@ public class DispatcherVerticle extends AbstractVerticle {
   public void start(Promise<Void> startPromise) throws Exception {
     Router router = Router.router(vertx);
 
-    router.post("/20230723/command").handler(routingContext -> {
+    // コマンドを受け付ける
+    router.get("/command").handler(routingContext -> {
       vertx.eventBus().request("command", routingContext.getBodyAsString(), reply -> {
         if (reply.succeeded()) {
           routingContext.response().putHeader("content-type", "text/plain")
@@ -25,7 +26,8 @@ public class DispatcherVerticle extends AbstractVerticle {
       });
     });
 
-    router.post("/20230723/query").handler(routingContext -> {
+    // クエリを受け付ける
+    router.get("/query").handler(routingContext -> {
       vertx.eventBus().request("query", routingContext.getBodyAsString(), reply -> {
         if (reply.succeeded()) {
           routingContext.response().putHeader("content-type", "text/plain")
@@ -37,7 +39,13 @@ public class DispatcherVerticle extends AbstractVerticle {
       });
     });
 
-    router.get("/20230723/health").handler(routingContext -> {
+    // event publisherからの更新情報を待つ
+    router.get("/event").handler(routingContext -> {
+      routingContext.response().putHeader("content-type", "application/json").end((String) "{}");
+    });
+
+    // health check
+    router.get("/health").handler(routingContext -> {
       routingContext.response().putHeader("content-type", "text/plain").end((String) "OK");
     });
 

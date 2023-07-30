@@ -5,7 +5,7 @@ import io.vertx.core.AbstractVerticle;
 public class QueryApiVerticle extends AbstractVerticle {
 
   // イベントバスから受け取ったクエリを評価して結果を返すverticleです
-  // 基本的にはクエリなので、冪等です
+  // 基本的にはクエリなので、冪等です（DB更新されたら返却値変わりますよ、当然）
   // バーティクル自体も更新せず冪等に動作します
   @Override
   public void start() throws Exception {
