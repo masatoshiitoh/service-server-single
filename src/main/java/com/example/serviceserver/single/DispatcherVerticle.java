@@ -1,6 +1,7 @@
 package com.example.serviceserver.single;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
 import io.vertx.ext.web.Router;
 
@@ -15,7 +16,8 @@ public class DispatcherVerticle extends AbstractVerticle {
 
     // コマンドを受け付ける
     router.get("/command").handler(routingContext -> {
-      vertx.eventBus().request("command", routingContext.getBodyAsString(), reply -> {
+      MultiMap params = routingContext.request().params();
+      vertx.eventBus().request("command", params, reply -> {
         if (reply.succeeded()) {
           routingContext.response().putHeader("content-type", "text/plain")
               .end((String) reply.result().body());
@@ -28,7 +30,8 @@ public class DispatcherVerticle extends AbstractVerticle {
 
     // クエリを受け付ける
     router.get("/query").handler(routingContext -> {
-      vertx.eventBus().request("query", routingContext.getBodyAsString(), reply -> {
+      MultiMap params = routingContext.request().params();
+      vertx.eventBus().request("query", params, reply -> {
         if (reply.succeeded()) {
           routingContext.response().putHeader("content-type", "text/plain")
               .end((String) reply.result().body());

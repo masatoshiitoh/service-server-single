@@ -3,13 +3,17 @@ package com.example.serviceserver.single;
 import io.vertx.config.ConfigRetriever;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Promise;
+import io.vertx.core.http.impl.headers.HeadersMultiMap;
 
 public class MainVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) {
     ConfigRetriever retriever = ConfigRetriever.create(vertx);
+    vertx.eventBus().registerDefaultCodec(MultiMap.class, new MultiMapToJsonCodec());
+    vertx.eventBus().registerDefaultCodec(HeadersMultiMap.class, new HeadersMultiMapToJsonCodec());
     retriever.getConfig().onComplete(json -> {
       if (json.succeeded()) {
         vertx.eventBus().publish("config", json.result());
@@ -17,7 +21,7 @@ public class MainVerticle extends AbstractVerticle {
         vertx.deployVerticle(new DispatcherVerticle(),
             new DeploymentOptions().setConfig(json.result()), res1 -> {
               if (res1.succeeded()) {
-                vertx.deployVerticle(new CommandProcessorVerticle(),
+                vertx.deployVerticle(new EkiModokiCommandProcessorVerticle(),
                     new DeploymentOptions().setConfig(json.result()), res2 -> {
                       if (res2.succeeded()) {
                         vertx.deployVerticle(new CommandEvaluatorVerticle(),

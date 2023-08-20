@@ -10,6 +10,8 @@ public class DummyClientVerticle extends AbstractVerticle {
   // webサーバーverticleです
 
   boolean isDummyClientRunning = false;
+  private DummyClientCommands dummyClientCommands;
+
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
@@ -60,26 +62,35 @@ public class DummyClientVerticle extends AbstractVerticle {
   public void dummyClientRunner() throws Exception {
     WebClient webClient = WebClient.create(vertx);
 
+    // eventbus コンシューマーがウェブクライアントを叩く
     vertx.eventBus().consumer("dummyclient", message -> {
       System.out.println("Received dummyclient: " + message.body());
 
       vertx.setTimer((int) (Math.random() * 1000) + 1, id -> {
 
-        webClient.get(8080, "localhost", "/command").send().onSuccess(response -> {
-          message.reply("Received response with status code" + response.statusCode());
-        }).onFailure(err -> {
-          message.reply("Something went wrong " + err.getMessage());
-        });
+        DummyClientCommand command =
+            dummyClientCommands.commands.get(Integer.parseInt(message.body().toString()));
+
+
+        webClient.get(8080, "localhost", "/command?" + command.getPathParameters()).send()
+            .onSuccess(response -> {
+              message.reply("Received response with status code" + response.statusCode());
+            }).onFailure(err -> {
+              message.reply("Something went wrong " + err.getMessage());
+            });
 
       });
     });
 
+    // とりあえず1秒ごとにイベントバスにメッセージを送る
     System.out.println("DummyClientVerticle started!");
     vertx.setPeriodic(1000, id -> {
       if (!isDummyClientRunning) {
         return;
       }
-      vertx.eventBus().request("dummyclient", "send", reply -> {
+
+      Integer index = (int) (Math.random() * dummyClientCommands.commands.size());
+      vertx.eventBus().request("dummyclient", index.toString(), reply -> {
         if (reply.succeeded()) {
           System.out.println("mesage sent!: " + reply.result().body());
         } else {
