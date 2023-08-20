@@ -24,18 +24,20 @@ public class Player {
       return new NoCheckIn();
     }
     // 待機時間経過チェック
+    // 前回チェックイン時刻に5分を追加した値が、現時刻よりも後なら、待機時間が残っている
     if (checkInHistory.containsKey(station.id)
         && checkInHistory.get(station.id).plusMinutes(5).isAfter(LocalDateTime.now())) {
-      // 待機時間がまだ残ってる
+      // 待機時間がまだ残っているなら、その駅には何もできない
       System.out.println("プレイヤー" + this.id + ": 待機時間がまだ残ってる: " + station.name);
       return new NoCheckIn();
     }
-
+    // 5分経過した、または、そのstation.idは存在しない、という場合の処理
     // チェックイン履歴に追加する
     System.out.println("プレイヤー" + this.id + ": チェックイン！ " + station.name);
     checkInHistory.put(station.id, LocalDateTime.now());
+
+    // TODO:この駅に対する攻撃結果を計算して保存する
+
     return new AttackCheckIn();
-
   }
-
 }
