@@ -1,4 +1,4 @@
-package com.example.serviceserver.single.DomainModel.EkiModoki;
+package com.example.serviceserver.single.Model.EkiModoki;
 
 // 駅の一覧
 public class Stations {

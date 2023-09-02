@@ -1,9 +1,7 @@
-package com.example.serviceserver.single.DomainModel.EkiModoki;
+package com.example.serviceserver.single.Model.EkiModoki;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class Player {
   public int id;
@@ -36,8 +34,8 @@ public class Player {
     System.out.println("プレイヤー" + this.id + ": チェックイン！ " + station.name);
     checkInHistory.put(station.id, LocalDateTime.now());
 
-    // TODO:この駅に対する攻撃結果を計算して保存する
 
-    return new AttackCheckIn();
+
+    return new AttackCheckIn(this.id, station.id, LocalDateTime.now());
   }
 }

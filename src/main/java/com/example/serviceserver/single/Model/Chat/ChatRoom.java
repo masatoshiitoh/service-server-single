@@ -1,4 +1,4 @@
-package com.example.serviceserver.single.DomainModel.Chat;
+package com.example.serviceserver.single.Model.Chat;
 
 import java.util.List;
 

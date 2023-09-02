@@ -1,11 +1,10 @@
 package com.example.serviceserver.single;
 
 import io.vertx.config.ConfigRetriever;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.MultiMap;
-import io.vertx.core.Promise;
+import io.vertx.core.*;
 import io.vertx.core.http.impl.headers.HeadersMultiMap;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -18,63 +17,29 @@ public class MainVerticle extends AbstractVerticle {
       if (json.succeeded()) {
         vertx.eventBus().publish("config", json.result());
 
-        vertx.deployVerticle(new DispatcherVerticle(),
-            new DeploymentOptions().setConfig(json.result()), res1 -> {
-              if (res1.succeeded()) {
-                vertx.deployVerticle(new EkiModokiCommandProcessorVerticle(),
-                    new DeploymentOptions().setConfig(json.result()), res2 -> {
-                      if (res2.succeeded()) {
-                        vertx.deployVerticle(new CommandEvaluatorVerticle(),
-                            new DeploymentOptions().setConfig(json.result()), res3 -> {
-                              if (res3.succeeded()) {
-                                vertx.deployVerticle(new QueryApiVerticle(),
-                                    new DeploymentOptions().setConfig(json.result()), res4 -> {
-                                      if (res4.succeeded()) {
-                                        vertx.deployVerticle(new EventPublisherVerticle(),
-                                            new DeploymentOptions().setConfig(json.result()),
-                                            res5 -> {
-                                              if (res5.succeeded()) {
-                                                vertx.deployVerticle(
-                                                    new EventToDbTransferVerticle(),
-                                                    new DeploymentOptions()
-                                                        .setConfig(json.result()),
-                                                    res6 -> {
-                                                      if (res6.succeeded()) {
-                                                        vertx.deployVerticle(
-                                                            new DummyClientVerticle(),
-                                                            new DeploymentOptions()
-                                                                .setConfig(json.result()),
-                                                            res7 -> {
-                                                              if (res7.succeeded()) {
-                                                                startPromise.complete();
-                                                              } else {
-                                                                startPromise.fail(res7.cause());
-                                                              }
-                                                            });
-                                                      } else {
-                                                        startPromise.fail(res6.cause());
-                                                      }
-                                                    });
-                                              } else {
-                                                startPromise.fail(res5.cause());
-                                              }
-                                            });
-                                      } else {
-                                        startPromise.fail(res4.cause());
-                                      }
-                                    });
-                              } else {
-                                startPromise.fail(res3.cause());
-                              }
-                            });
-                      } else {
-                        startPromise.fail(res2.cause());
-                      }
-                    });
-              } else {
-                startPromise.fail(res1.cause());
-              }
-            });
+        Future<String> v1 = vertx.deployVerticle(new CommandEvaluatorVerticle(),
+            new DeploymentOptions().setConfig(json.result()));
+        Future<String> v2 = vertx.deployVerticle(new DispatcherVerticle(),
+            new DeploymentOptions().setConfig(json.result()));
+        Future<String> v3 = vertx.deployVerticle(new DummyClientVerticle(),
+            new DeploymentOptions().setConfig(json.result()));
+        Future<String> v4 = vertx.deployVerticle(new EkiModokiCommandProcessorVerticle(),
+            new DeploymentOptions().setConfig(json.result()));
+        Future<String> v5 = vertx.deployVerticle(new EventPublisherVerticle(),
+            new DeploymentOptions().setConfig(json.result()));
+        Future<String> v6 = vertx.deployVerticle(new EventToDbTransferVerticle(),
+            new DeploymentOptions().setConfig(json.result()));
+        Future<String> v7 = vertx.deployVerticle(new QueryApiVerticle(),
+            new DeploymentOptions().setConfig(json.result()));
+        List<Future> futures = List.of(v1, v2, v3, v4, v5, v6, v7);
+
+        CompositeFuture.all(futures).onComplete(ar -> {
+          if (ar.succeeded()) {
+            startPromise.complete();
+          } else {
+            startPromise.fail(ar.cause());
+          }
+        });
       } else {
         startPromise.fail(json.cause());
       }

@@ -1,4 +1,4 @@
-package com.example.serviceserver.single.DomainModel.Chat;
+package com.example.serviceserver.single.Model.Chat;
 
 public class ChatMessage {
   private String senderId;

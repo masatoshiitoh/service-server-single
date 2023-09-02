@@ -1,4 +1,4 @@
-package com.example.serviceserver.single.DomainModel.EkiModoki;
+package com.example.serviceserver.single.Model.EkiModoki;
 
 public class Station {
   public int id;
