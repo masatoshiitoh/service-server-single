@@ -30,15 +30,10 @@ public class EventToDbTransferVerticle extends AbstractVerticle {
   KafkaConsumer<String, String> kafkaConsumer;
 
 
-  MySQLConnectOptions connectOptions = new MySQLConnectOptions()
-    .setPort(3306)
-    .setHost("localhost")
-    .setDatabase("ekimodoki")
-    .setUser("root")
-    .setPassword("rootpass");
+  MySQLConnectOptions connectOptions = new MySQLConnectOptions().setPort(3306).setHost("localhost")
+      .setDatabase("ekimodoki").setUser("root").setPassword("rootpass");
 
-  PoolOptions poolOptions = new PoolOptions()
-    .setMaxSize(5);
+  PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
 
   @Override
   public void start() throws Exception {
@@ -60,24 +55,26 @@ public class EventToDbTransferVerticle extends AbstractVerticle {
 
     kafkaConsumer.handler(record -> {
       JsonObject json = new JsonObject(record.value());
-      String own_player = json.getString("own_player");
-      String own_start_at = json.getString("own_start_at");
-      // TODO: ここでDBに書き込む
-      SqlClient client = MySQLPool.client(connectOptions, poolOptions);
-      client.preparedQuery("UPDATE stations SET kafka_index = ?, own_player = ?, own_start_at = ?").execute(Tuple.of(record.offset(),record.)).onComplete(ar -> {
-        if (ar.succeeded()) {
-          System.out.println("EventToDbTransferVerticle: Got " + ar.result().size() + " rows ");
-        } else {
-          System.out.println("EventToDbTransferVerticle: Failure: " + ar.cause().getMessage());
-        }
-      });
+      String playerId = json.getString("playerId");
+      String checkInTime = json.getString("checkInTime");
+      String stationId = json.getString("stationId");
+      // Kafka経由でpubsubされてきた情報をDBに書き込む
+      SqlClient client = MySQLPool.pool(vertx, connectOptions, poolOptions);
+      client
+          .preparedQuery(
+              "UPDATE stations SET kafka_index = ?, own_player = ?, own_start_at = ? WHERE id = ?")
+          .execute(Tuple.of(record.offset(), Integer.parseInt(playerId), checkInTime,
+              Integer.parseInt(stationId)))
+          .onComplete(ar -> {
+            if (ar.succeeded()) {
+              System.out.println("EventToDbTransferVerticle: Got " + ar.result().size() + " rows ");
+            } else {
+              System.out.println("EventToDbTransferVerticle: Failure: " + ar.cause().getMessage());
+            }
+          });
       System.out.println(
-          "EventToDbTransferVerticle: offset: "
-            + record.offset()
-            + ", message: "
-            + record.value());
+          "EventToDbTransferVerticle: offset: " + record.offset() + ", message: " + record.value());
     });
-
 
 
 
