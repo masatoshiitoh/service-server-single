@@ -36,6 +36,6 @@ public class Player {
 
 
 
-    return new AttackCheckIn(this.id, station.id, LocalDateTime.now());
+    return new AttackCheckIn(this.id, this.id, station.id, LocalDateTime.now()); // 第2引数は本来攻撃を受けた側（保持プレイヤー）のID
   }
 }
